@@ -1,8 +1,16 @@
+Session 1
 - Set up Ubuntu VM to work in
 - Create new Github repo https://github.com/adamconroy/rstudio-coding-test
 - Sign up for Firebase and initialize repo, do a test deployment to https://rstudio-test-5424e.firebaseapp.com/
+
+Session 2
 - Research Boggle rules, brainstorm some designs and sketch out some desired functionality
 - Find an English Scrabble dictionary https://github.com/jonbcard/scrabble-bot/blob/master/src/dictionary.txt
     - Strip < 3 length words and to lower case the dictionary with scripts/parsedict.js
     - Only save 10% of the words to keep the dictionary size small enough to load reasonably inside the browser
 - Strip Firebase boilerplate and link in bootstrap. Do some more design.
+
+Session 3
+- Set up local dev web server and get basic css and js layouts working
+- Design and test algorithm
+- Sketch out design ideas for UX
