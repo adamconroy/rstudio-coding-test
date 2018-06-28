@@ -19,26 +19,91 @@
 
     <!-- boggle code -->
     <!--
-      note that we're keeping everything simple and in one file to focus on the the product and 
-      speed of development and this is not indicative of a production architecture. pretty much
+      Note that we're keeping everything simple and in one file to focus on the the product and 
+      speed of development and this is not indicative of a production architecture. Pretty much
       anywhere that I could cut a corner to save time without sacrificing the algorithm or usability
       of the product that I could, I did so that I could funnel that time into the focus of the project.
+
+      I'm purposefully not setting up node or webpack or react and just using bootstrap and jquery to
+      build something barebones but functional as quickly as possible to be mindful of the time limit.
+      
+      ...but I'm definitely missing babel right now! :P
     -->
-    <script src="./boggle.js"></script>
 
     <script type="text/javascript">
+      // GLOBAL
+      var boggle = [];
+      var tree = {};
+
+      // CONSTANTS
+      var END_OF_WORD = '$';
+
+      // For each letter in the word:
+      //   - Check if it's in the tree at this position
+      //   - Add it to the tree if it's not already there
+      //   - Set the value of that key in the dictionary to true if it's the terminus of the word
+      //   - Call add_word_to_tree for the next letter
+      function add_word_to_tree(node, word) {
+        if (!word || !word.length || word.length < 1) {
+          console.log('error: called add_word_to_tree with bad input: ', word);
+          return;
+        }
+
+        if (word != null) {
+          var letter = word[0];
+          if (!(letter in node)) {
+            node[letter] = {word: (word.length == 1)};
+          }
+
+          if (word.length > 1) {
+            add_word_to_tree(node[letter], word.slice(1, word.length));
+          }
+        }
+      }
+
+      // Build a tree of words letter by letter that will let us easily
+      // traverse it and quickly find boggle solutions
+      function add_words_to_tree(event) {
+        var words = event.detail;
+        for (var i = 0; i < words.length; i++) {
+          if (!!words[i] && words[i].length > 0) {
+            add_word_to_tree(tree, words[i]);
+          }
+        }
+      }
+
       function load_dict() {
+        //$.get("./test_dict.txt", function(data, status) {
         $.get("./boggle_dict.txt", function(data, status) {
-          console.log(status);
-          alert(data.length);
+          var words = data.split('\n');
+          var event = new CustomEvent('dictionary_loaded', {detail: words});
+          document.dispatchEvent(event);
         });
       }
 
       function init_tree() {
+        // doing some oldschool event handling to free memory quicker as this simple prototype is a bit of a memory hog
+        document.addEventListener('dictionary_loaded', add_words_to_tree, false);
         load_dict();
       }
 
+      function boggle_start(node, traversed, string_accum, answers) {
+      }
+
       function solve_boggle(input) {
+        boggle = [
+          ['m', 'a', 'p', 'o'],
+          ['e', 't', 'e', 'r'],
+          ['d', 'e', 'n', 'i'],
+          ['l', 'd', 'h', 'c']
+        ];
+        
+        for (var i = 0; i < input.length; i++) {
+          for (var j = 0; j < input[i].length; i++) {
+            // WORKING ON THIS NEXT!
+//            boggle_start(tree, , );
+          }
+        }
       }
 
       init_tree();
