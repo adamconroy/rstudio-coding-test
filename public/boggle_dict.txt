@@ -5540,7 +5540,6 @@ fanfares
 fanfold
 fantasticalness
 fantastico
-faqir
 faquirs
 faradize
 faraway
@@ -12764,7 +12763,6 @@ pyrrhotite
 pyruvates
 python
 pyxidium
-qindarka
 quaalude
 quackeries
 quackisms
@@ -14485,7 +14483,6 @@ shellwork
 sheltered
 shelving
 shent
-sheqalim
 shereefs
 sherpas
 sheugh
@@ -16559,7 +16556,6 @@ trampling
 trampoliners
 tramway
 trangam
-tranqs
 tranquillest
 tranquillity
 tranquillize
@@ -16876,7 +16872,6 @@ umbilication
 umbilici
 umbrageously
 umiak
-umiaqs
 umlauting
 umpteen
 unaccented

@@ -61,6 +61,13 @@
 
         if (word != null) {
           var letter = word[0];
+
+          // special case for qu words
+          if (letter == "q" && word.length > 1 && word[1] == "u") {
+            letter = "qu";
+            word = word.slice(1, word.length);
+          }
+
           if (!(letter in node)) {
             node[letter] = {word: (word.length == 1)};
           } else {
@@ -83,11 +90,11 @@
           }
         }
 
-        $('#solve_button').disabled = false;
+        // enable the solve button after the dictionary is loaded
+        $('#solve-button').prop("disabled", false);
       }
 
       function load_dict() {
-//        $.get("./pen_dict.txt", function(data, status) {
         $.get("./boggle_dict.txt", function(data, status) {
           var words = data.split('\n');
           var event = new CustomEvent('dictionary_loaded', {detail: words});
@@ -118,14 +125,14 @@
         return neighbors;
       }
 
-      function boggle_recurse(subtree, traversed, string_accum, next_letter) {
+      function boggle_recurse(subtree, traversed, accum, next_letter) {
         var x = next_letter.x;
         var y = next_letter.y;
         var letter = boggle[x][y];
 
         // If we called this function and have already hit this node...something went wrong
         if (traversed[x][y]) {
-          console.log('ALREADY TRAVERSED - stopping');
+          //console.log('ALREADY TRAVERSED - stopping');
           return;
         }
 
@@ -140,23 +147,24 @@
           new_traversed[x][y] = true;
 
           // if so, add it to our string and save an answer if it's a valid word
-          string_accum += letter;
+          accum.str += letter;
+          accum.order.push([x, y]);
           if (subtree[letter].word) {
-            answers.push(string_accum);
+            answers.push($.extend(true, {}, accum));
           }
           
           // check all of our untraversed neighbors
           var untraversed = get_untraversed_neighbors(x, y, new_traversed);
           for (var i = 0; i < untraversed.length; i++) {
             var neighbor = untraversed[i];
-            boggle_recurse(subtree[letter], new_traversed, string_accum, {x: neighbor.x, y: neighbor.y}, []);
+            boggle_recurse(subtree[letter], new_traversed, $.extend(true, {}, accum), {x: neighbor.x, y: neighbor.y}, []);
           }
 
         }
       }
 
       // we're going to use a 2D array the size of the boggle board
-      // to denote which nodes we've hit already. This isn't pretty but it's fast
+      // to denote which nodes we've hit already. This isn't pretty but it's fast enough
       // and helps to visualize what's going on at this stage
       function get_new_traversal_array() {
         return [
@@ -167,11 +175,81 @@
         ];
       }
 
+      // Get a rough index for the color values so we get a strong gradient
+      // across all answer sizes
+      function get_interpolated_index(num_chunks, cur_chunk, max_index) {
+        var indiv_percent = 1 / num_chunks;
+        var cur_percent = cur_chunk * indiv_percent;
+        return Math.floor(max_index * cur_percent);
+      }
+
+      // This is much messier than I'd like it to be but...speed
+      function add_answer_grid(answer) {
+        var boggle_answer = [
+          [null, null, null, null],
+          [null, null, null, null],
+          [null, null, null, null],
+          [null, null, null, null]
+        ];
+        for (var i = 0; i < 4; i++) {
+          boggle_answer[i] = new Array(4);
+        }
+
+        for (var i = 0; i < answer.order.length; i++) {
+          var letter_index = answer.order[i];
+          var x = letter_index[0];
+          var y = letter_index[1];
+          boggle_answer[x][y] = get_interpolated_index(answer.order.length, i, 15);
+        }
+
+        var grid_str = `<div class='boggle-grid'>`;
+        for (var i = 0; i < 4; i++) {
+          grid_str += `<div class='row'>`;
+          for (var j = 0; j < 4; j++) {
+            var class_str = "letter-" + boggle_answer[i][j];
+            var val = boggle_answer[i][j] != null ? boggle[i][j] : '';
+            grid_str += `<input class='boggle-letter ${class_str}' maxlength='1' type='text' value=${val}>`;
+          }
+          grid_str += `</div>`;
+        }
+        grid_str += `</div>`;
+        var grid = $(grid_str).appendTo(".answers");
+      }
+
       function solve_boggle() {
+        answers = [];
+        $("#answers").empty();
+
+        boggle = new Array(4);
+        for (var i = 0; i < 4; i++) {
+          boggle[i] = new Array(4);
+          for (var j = 0; j < 4; j++) {
+            boggle[i][j] = $("#" + i + j).val().toLowerCase();
+            
+            if (boggle[i][j] == "q") {
+              boggle[i][j] = "qu";
+            }
+          }
+        }
+
         for (var i = 0; i < boggle.length; i++) {
           for (var j = 0; j < boggle[i].length; j++) {
             var traversed = get_new_traversal_array();
-            boggle_recurse(tree, traversed, '', {x: i, y: j});
+            boggle_recurse(tree, traversed, {str: '', order: []}, {x: i, y: j});
+          }
+        }
+
+        for (var i = 0; i < answers.length; i++) {
+          add_answer_grid(answers[i]);
+        }
+      }
+
+      function reset_grid() {
+        $("#answers").empty();
+
+        for (var i = 0; i < 4; i++) {
+          for (var j = 0; j < 4; j++) {
+            $("#" + i + j).val("");
           }
         }
       }
@@ -181,10 +259,10 @@
 
   </head>
   <body>
-    <h1>Boggle Solver<h1>
-    <div id="intro">
-      <h2>Welcome</h2>
-      <p>This is a solver for boggle, enter your puzzle below and click solve!<p>
+    <h1 style="text-align:center">Boggle Solver<h1>
+    <div style="text-align:center">
+      <p>Enter your puzzle below and click solve!
+      <h3>Note: entering Q into a square counts as Qu.</h3></p>
     </div>
 
     <div class="boggle-grid">
@@ -217,5 +295,18 @@
         <button id="reset-button" type="button" class="btn btn-outline-danger boggle-button">Reset</button>
       </div>
     </div>
+
+    <div id="answers" class="boggle-grid">
+    </div>
+
+    <script>
+      // Button bindings
+      $("#solve-button").click(function() {
+        solve_boggle();
+      });
+      $("#reset-button").click(function() {
+        reset_grid();
+      });
+    </script>
   </body>
 </html>

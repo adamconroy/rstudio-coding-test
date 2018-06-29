@@ -14,6 +14,23 @@
   --monokai-yellow: #E6DB74;
   --monokai-yellow-dark: #75715E;
   --monokai-yellow-light: #F8F8F2;
+
+  --gradient-0: rgb(185,232,251);
+  --gradient-1: rgb(180,228,251);
+  --gradient-2: rgb(175,224,250);
+  --gradient-3: rgb(169,219,250);
+  --gradient-4: rgb(165,216,249);
+  --gradient-5: rgb(159,210,248);
+  --gradient-6: rgb(153,206,248);
+  --gradient-7: rgb(146,200,247);
+  --gradient-8: rgb(136,188,244);
+  --gradient-9: rgb(122,172,239);
+  --gradient-10: rgb(109,155,234);
+  --gradient-11: rgb(95,138,228);
+  --gradient-12: rgb(80,119,223);
+  --gradient-13: rgb(69,106,219);
+  --gradient-14: rgb(57,92,214);
+  --gradient-15: rgb(51,85,212);
 }
 
 body {
@@ -34,10 +51,10 @@ body {
 }
 
 .boggle-letter {
-  background: var(--monokai-gray-lightest);
+  background: var(--monokai-gray-darkest);
   color: var(--monokai-green);
 
-  border: 1px solid var(--monokai-grey-dark);
+  border: 1px solid #636363;
   border-radius: 3px;
 
   margin: 1px;
@@ -49,4 +66,59 @@ body {
 
 .boggle-button {
   margin: 5px;
+}
+
+.answers {
+  display:flex;
+  flex-direction: row;
+}
+
+.letter-0 {
+  color: var(--gradient-0);
+  border: 2px solid white;
+}
+.letter-1 {
+  color: var(--gradient-1);
+}
+.letter-2 {
+  color: var(--gradient-2);
+}
+.letter-3 {
+  color: var(--gradient-3);
+}
+.letter-4 {
+  color: var(--gradient-4);
+}
+.letter-5 {
+  color: var(--gradient-5);
+}
+.letter-6 {
+  color: var(--gradient-6);
+}
+.letter-7 {
+  color: var(--gradient-7);
+}
+.letter-8 {
+  color: var(--gradient-8);
+}
+.letter-9 {
+  color: var(--gradient-9);
+}
+.letter-10 {
+  color: var(--gradient-10);
+}
+.letter-11 {
+  color: var(--gradient-11);
+}
+.letter-12 {
+  color: var(--gradient-12);
+}
+.letter-13 {
+  color: var(--gradient-13);
+}
+.letter-14 {
+  color: var(--gradient-14);
+}
+.letter-15 {
+  color: var(--gradient-15);
 }
