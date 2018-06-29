@@ -43,11 +43,43 @@ body {
   flex-direction: column;
   justify-content: center;
   align-items: center;
-  height: 250px;
 }
 
-.row {
-  flex: 1;
+#summary {
+  color: var(--monokai-purple);
+  margin-top: 50px;
+  margin-left: 25%;
+  margin-right: 25%;
+}
+
+#answers {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.boggle-answer {
+  display: flex;
+  align-items: center;
+  justify-content: space-evenly;
+  flex-direction: row;
+  margin-top: 50px;
+}
+
+.answer-grid {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: flex-start;
+}
+
+.answer-word {
+  align-items: flex-end;
+  color: var(--monokai-blue-light);
+}
+
+.word-row {
+  display: flex;
 }
 
 .boggle-letter {

@@ -47,6 +47,26 @@
 
       // CONSTANTS
       var END_OF_WORD = '$';
+      // not the prettiest thing but quick answer in raw js
+      var POINTS = {
+        0: 0,
+        1: 0,
+        2: 0,
+        3: 1,
+        4: 1,
+        5: 2,
+        6: 3,
+        7: 5,
+        8: 11,
+        9: 11,
+        10: 11,
+        11: 11,
+        12: 11,
+        13: 11,
+        14: 11,
+        15: 11,
+        16: 11
+      };
 
       // For each letter in the word:
       //   - Check if it's in the tree at this position
@@ -180,7 +200,30 @@
       function get_interpolated_index(num_chunks, cur_chunk, max_index) {
         var indiv_percent = 1 / num_chunks;
         var cur_percent = cur_chunk * indiv_percent;
-        return Math.floor(max_index * cur_percent);
+        return Math.ceil(max_index * cur_percent);
+      }
+
+      function add_summary() {
+        // remove duplicates
+        var deduped = {};
+        for (var i = 0; i < answers.length; i++) {
+          deduped[answers[i].str] = 1;
+        }
+        deduped = Object.keys(deduped);
+        deduped.sort();
+
+        var total_score = 0;
+        for (var i = 0; i < deduped.length; i++) {
+          total_score += POINTS[deduped[i].length];
+        }
+
+        var summary_str = `
+          <div>
+            <div>Non duplicate potential words: ${deduped.join(', ')}</div>
+            <div>Total Score: ${total_score}</div>
+          </div>`;
+
+        $(summary_str).appendTo("#summary");
       }
 
       // This is much messier than I'd like it to be but...speed
@@ -202,9 +245,9 @@
           boggle_answer[x][y] = get_interpolated_index(answer.order.length, i, 15);
         }
 
-        var grid_str = `<div class='boggle-grid'>`;
+        var grid_str = `<div class='boggle-answer'><div class='answer-grid'>`;
         for (var i = 0; i < 4; i++) {
-          grid_str += `<div class='row'>`;
+          grid_str += `<div class='word-row'>`;
           for (var j = 0; j < 4; j++) {
             var class_str = "letter-" + boggle_answer[i][j];
             var val = boggle_answer[i][j] != null ? boggle[i][j] : '';
@@ -212,12 +255,13 @@
           }
           grid_str += `</div>`;
         }
-        grid_str += `</div>`;
-        var grid = $(grid_str).appendTo(".answers");
+        grid_str += `</div><div class='answer-word'>${answer.str}, ${POINTS[answer.str.length]} point(s)</div></div>`;
+        var grid = $(grid_str).appendTo("#answers");
       }
 
       function solve_boggle() {
         answers = [];
+        $("#summary").empty();
         $("#answers").empty();
 
         boggle = new Array(4);
@@ -239,12 +283,15 @@
           }
         }
 
+        add_summary();
+
         for (var i = 0; i < answers.length; i++) {
           add_answer_grid(answers[i]);
         }
       }
 
       function reset_grid() {
+        $("#summary").empty();
         $("#answers").empty();
 
         for (var i = 0; i < 4; i++) {
@@ -266,37 +313,39 @@
     </div>
 
     <div class="boggle-grid">
-      <div class="row">
+      <div class="word-row">
         <input class="boggle-letter" maxlength="1" type="text" id="00">
         <input class="boggle-letter" maxlength="1" type="text" id="01">
         <input class="boggle-letter" maxlength="1" type="text" id="02">
         <input class="boggle-letter" maxlength="1" type="text" id="03">
       </div>
-      <div class="row">
+      <div class="word-row">
         <input class="boggle-letter" maxlength="1" type="text" id="10">
         <input class="boggle-letter" maxlength="1" type="text" id="11">
         <input class="boggle-letter" maxlength="1" type="text" id="12">
         <input class="boggle-letter" maxlength="1" type="text" id="13">
       </div>
-      <div class="row">
+      <div class="word-row">
         <input class="boggle-letter" maxlength="1" type="text" id="20">
         <input class="boggle-letter" maxlength="1" type="text" id="21">
         <input class="boggle-letter" maxlength="1" type="text" id="22">
         <input class="boggle-letter" maxlength="1" type="text" id="23">
       </div>
-      <div class="row">
+      <div class="word-row">
         <input class="boggle-letter" maxlength="1" type="text" id="30">
         <input class="boggle-letter" maxlength="1" type="text" id="31">
         <input class="boggle-letter" maxlength="1" type="text" id="32">
         <input class="boggle-letter" maxlength="1" type="text" id="33">
       </div>
-      <div class="row">
+      <div class="word-row">
         <button id="solve-button" disabled="true" type="button" class="btn btn-outline-info boggle-button">Solve</button>
         <button id="reset-button" type="button" class="btn btn-outline-danger boggle-button">Reset</button>
       </div>
     </div>
 
-    <div id="answers" class="boggle-grid">
+    <div id="summary">
+    </div>
+    <div id="answers">
     </div>
 
     <script>
@@ -306,6 +355,12 @@
       });
       $("#reset-button").click(function() {
         reset_grid();
+      });
+
+      $(document).keypress(function(e) {
+        if (e.which == 13) {
+          solve_boggle();
+        }
       });
     </script>
   </body>
