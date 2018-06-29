@@ -20,3 +20,33 @@ body {
   color: var(--monokai-magenta);
   background: var(--monokai-gray-darkest);
 }
+
+.boggle-grid {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  height: 250px;
+}
+
+.row {
+  flex: 1;
+}
+
+.boggle-letter {
+  background: var(--monokai-gray-lightest);
+  color: var(--monokai-green);
+
+  border: 1px solid var(--monokai-grey-dark);
+  border-radius: 3px;
+
+  margin: 1px;
+
+  text-align: center;
+  width: 50px;
+  height: 50px;
+}
+
+.boggle-button {
+  margin: 5px;
+}

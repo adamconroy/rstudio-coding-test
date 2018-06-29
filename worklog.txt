@@ -14,3 +14,10 @@ Session 3
 - Set up local dev web server and get basic css and js layouts working
 - Design and test algorithm
 - Sketch out design ideas for UX
+
+Session 4
+- Get data structures and algorithm working. Do some small performance tweaks to ensure that medium size dictionaries can be loaded
+
+Session 5
+- Get algorithm totally working, lots of debugging
+- Finish deploy, and deliver project

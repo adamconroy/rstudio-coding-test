@@ -12,3 +12,4 @@ abbacies
 abbess
 abbot
 abcoulomb
+pen

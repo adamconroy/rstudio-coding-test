@@ -6,13 +6,13 @@
     <title>Boggle Solver</title>
 
     <!-- Use bootstrap css and js for easy, pretty prototyping -->
-    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.1/css/bootstrap.min.css" integrity="sha384-WskhaSGFgHYWDcbwN70/dfYBj47jz9qbsMId/iRN3ewGhXQFZCSftd1LZCfmhktB" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.1/css/bootstrap.min.css">
     <script src="https://code.jquery.com/jquery-3.3.1.min.js"></script>
 
     <!-- bootstrap apparently by default now targets the slim build of jquery
-    <!--<script src="https://code.jquery.com/jquery-3.3.1.slim.min.js" integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo" crossorigin="anonymous"></script>-->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.3/umd/popper.min.js" integrity="sha384-ZMP7rVo3mIykV+2+9J3UJ46jBk0WLaUAdn689aCwoqbBJiSnjAK/l8WvCWPIPm49" crossorigin="anonymous"></script>
-    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.1.1/js/bootstrap.min.js" integrity="sha384-smHYKdLADwkXOn1EmN1qk/HfnUcbVRZyYmZ4qpPea6sjB/pTJ0euyQp0Mk8ck+5T" crossorigin="anonymous"></script>
+    <!--<script src="https://code.jquery.com/jquery-3.3.1.slim.min.js"></script>-->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.3/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.1.1/js/bootstrap.min.js"></script>
 
     <!-- stylesheets -->
     <link rel="stylesheet" href="./boggle.css">
@@ -32,8 +32,18 @@
 
     <script type="text/javascript">
       // GLOBAL
-      var boggle = [];
-      var tree = {};
+
+      // The boggle board will just be a 2D array. We could use a flat array and modulo to find neighbors and
+      // scale to bigger boards quicker but this helps to visualize in a smaller project at the moment, easy
+      // future enhancement here.
+      var boggle = null;
+
+      // Similar to above, we're just going to use a keyed javascript object to create a tree here instead of
+      // a defined type that is more memory conscientious as this helps introspection easier in the early stages.
+      var tree = {word: false};
+
+      // accumulate answers here to simplify functional interfaces for a prototype
+      var answers = [];
 
       // CONSTANTS
       var END_OF_WORD = '$';
@@ -53,6 +63,8 @@
           var letter = word[0];
           if (!(letter in node)) {
             node[letter] = {word: (word.length == 1)};
+          } else {
+            node[letter].word = node[letter].word || word.length == 1;
           }
 
           if (word.length > 1) {
@@ -70,10 +82,12 @@
             add_word_to_tree(tree, words[i]);
           }
         }
+
+        $('#solve_button').disabled = false;
       }
 
       function load_dict() {
-        //$.get("./test_dict.txt", function(data, status) {
+//        $.get("./pen_dict.txt", function(data, status) {
         $.get("./boggle_dict.txt", function(data, status) {
           var words = data.split('\n');
           var event = new CustomEvent('dictionary_loaded', {detail: words});
@@ -87,21 +101,77 @@
         load_dict();
       }
 
-      function boggle_start(node, traversed, string_accum, answers) {
+      // get all of the neighbors that haven't been hit yet
+      function get_untraversed_neighbors(x, y, traversed) {
+        var neighbors = [];
+        for (var i = x - 1; i <= x + 1; i++) {
+          for (var j = y - 1; j <= y + 1; j++) {
+            if (!(i == x && j == y) && 
+                i >= 0 && i < traversed.length &&
+                j >= 0 && j < traversed[i].length &&
+                traversed[i][j] == false) {
+              neighbors.push({x: i, y: j});
+            }
+          }
+        }
+
+        return neighbors;
       }
 
-      function solve_boggle(input) {
-        boggle = [
-          ['m', 'a', 'p', 'o'],
-          ['e', 't', 'e', 'r'],
-          ['d', 'e', 'n', 'i'],
-          ['l', 'd', 'h', 'c']
+      function boggle_recurse(subtree, traversed, string_accum, next_letter) {
+        var x = next_letter.x;
+        var y = next_letter.y;
+        var letter = boggle[x][y];
+
+        // If we called this function and have already hit this node...something went wrong
+        if (traversed[x][y]) {
+          console.log('ALREADY TRAVERSED - stopping');
+          return;
+        }
+
+        // is the letter we're checking in the tree
+        if (letter in subtree) {
+          // deep clone the array because js passes arrays by reference, this
+          // is another shortcoming of using this approach and normally i'd refactor this
+          // at this point if there were more time. FIXME
+          var new_traversed = jQuery.extend(true, [], traversed);
+
+          // mark that we've hit this letter in the grid
+          new_traversed[x][y] = true;
+
+          // if so, add it to our string and save an answer if it's a valid word
+          string_accum += letter;
+          if (subtree[letter].word) {
+            answers.push(string_accum);
+          }
+          
+          // check all of our untraversed neighbors
+          var untraversed = get_untraversed_neighbors(x, y, new_traversed);
+          for (var i = 0; i < untraversed.length; i++) {
+            var neighbor = untraversed[i];
+            boggle_recurse(subtree[letter], new_traversed, string_accum, {x: neighbor.x, y: neighbor.y}, []);
+          }
+
+        }
+      }
+
+      // we're going to use a 2D array the size of the boggle board
+      // to denote which nodes we've hit already. This isn't pretty but it's fast
+      // and helps to visualize what's going on at this stage
+      function get_new_traversal_array() {
+        return [
+          [false, false, false, false],
+          [false, false, false, false],
+          [false, false, false, false],
+          [false, false, false, false]
         ];
-        
-        for (var i = 0; i < input.length; i++) {
-          for (var j = 0; j < input[i].length; i++) {
-            // WORKING ON THIS NEXT!
-//            boggle_start(tree, , );
+      }
+
+      function solve_boggle() {
+        for (var i = 0; i < boggle.length; i++) {
+          for (var j = 0; j < boggle[i].length; j++) {
+            var traversed = get_new_traversal_array();
+            boggle_recurse(tree, traversed, '', {x: i, y: j});
           }
         }
       }
@@ -117,7 +187,35 @@
       <p>This is a solver for boggle, enter your puzzle below and click solve!<p>
     </div>
 
-    <div>Solver</div>
-
+    <div class="boggle-grid">
+      <div class="row">
+        <input class="boggle-letter" maxlength="1" type="text" id="00">
+        <input class="boggle-letter" maxlength="1" type="text" id="01">
+        <input class="boggle-letter" maxlength="1" type="text" id="02">
+        <input class="boggle-letter" maxlength="1" type="text" id="03">
+      </div>
+      <div class="row">
+        <input class="boggle-letter" maxlength="1" type="text" id="10">
+        <input class="boggle-letter" maxlength="1" type="text" id="11">
+        <input class="boggle-letter" maxlength="1" type="text" id="12">
+        <input class="boggle-letter" maxlength="1" type="text" id="13">
+      </div>
+      <div class="row">
+        <input class="boggle-letter" maxlength="1" type="text" id="20">
+        <input class="boggle-letter" maxlength="1" type="text" id="21">
+        <input class="boggle-letter" maxlength="1" type="text" id="22">
+        <input class="boggle-letter" maxlength="1" type="text" id="23">
+      </div>
+      <div class="row">
+        <input class="boggle-letter" maxlength="1" type="text" id="30">
+        <input class="boggle-letter" maxlength="1" type="text" id="31">
+        <input class="boggle-letter" maxlength="1" type="text" id="32">
+        <input class="boggle-letter" maxlength="1" type="text" id="33">
+      </div>
+      <div class="row">
+        <button id="solve-button" disabled="true" type="button" class="btn btn-outline-info boggle-button">Solve</button>
+        <button id="reset-button" type="button" class="btn btn-outline-danger boggle-button">Reset</button>
+      </div>
+    </div>
   </body>
 </html>
